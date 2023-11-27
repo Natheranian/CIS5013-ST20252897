@@ -161,7 +161,7 @@ void AIMesh::preRender() {
 
 	// Bind (and leave bound) the index array for drawing
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshFaceIndexBuffer);
-	glBindVertexArray(vao);
+	//glBindVertexArray(vao);
 }
 
 

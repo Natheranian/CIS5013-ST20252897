@@ -32,9 +32,7 @@ Cylinder::Cylinder(std::string filename, GLuint meshIndex) : AIMesh(filename, me
 
 // Override pre and post render to use wave textures unique to cylinder
 
-void Cylinder::preRender() {
-
-	AIMesh::preRender(); // will not bind texture since inherited texture = 0
+void Cylinder::setupTextures() {
 
 	// Now bind wave textures
 	glActiveTexture(GL_TEXTURE1);
@@ -57,11 +55,6 @@ void Cylinder::render(mat4 transform) {
 	glUniform1f(shader_wave2Phase, sinf(glm::radians<float>(wavePhase)));
 
 	AIMesh::render();
-}
-
-void Cylinder::postRender() {
-
-	AIMesh::postRender();
 }
 
 

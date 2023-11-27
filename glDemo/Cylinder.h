@@ -24,9 +24,8 @@ public:
 
 	Cylinder(std::string filename, GLuint meshIndex = 0);
 
-	void preRender();
+	void setupTextures();
 	void render(glm::mat4 transform);
-	void postRender();
 
 	void update(float tDelta);
 };

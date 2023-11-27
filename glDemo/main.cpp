@@ -336,9 +336,8 @@ void renderWithDirectionalLight() {
 
 		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 		
-		groundMesh->preRender();
+		groundMesh->setupTextures();
 		groundMesh->render();
-		groundMesh->postRender();
 	}
 
 	if (creatureMesh) {
@@ -347,9 +346,8 @@ void renderWithDirectionalLight() {
 
 		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		creatureMesh->preRender();
+		creatureMesh->setupTextures();
 		creatureMesh->render();
-		creatureMesh->postRender();
 	}
 
 	// Render diffuse textured column (to compare with normal mapped version rendered below)...
@@ -359,9 +357,8 @@ void renderWithDirectionalLight() {
 
 		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		columnMesh->preRender();
+		columnMesh->setupTextures();
 		columnMesh->render();
-		columnMesh->postRender();
 	}
 
 
@@ -385,9 +382,8 @@ void renderWithDirectionalLight() {
 
 		glUniformMatrix4fv(nMapDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		columnMesh->preRender();
+		columnMesh->setupTextures();
 		columnMesh->render();
-		columnMesh->postRender();
 	}
 
 #pragma endregion
@@ -404,9 +400,8 @@ void renderWithDirectionalLight() {
 
 		mat4 T = cameraProjection * cameraView * glm::translate(identity<mat4>(), cylinderPos);
 
-		cylinderMesh->preRender();
+		cylinderMesh->setupTextures();
 		cylinderMesh->render(T);
-		cylinderMesh->postRender();
 	}
 
 	glDisable(GL_BLEND);
@@ -420,6 +415,8 @@ void renderWithDirectionalLight() {
 	
 	// Restore fixed-function pipeline
 	glUseProgram(0);
+	glBindVertexArray(0);
+	glDisable(GL_TEXTURE_2D);
 
 	mat4 cameraT = cameraProjection * cameraView;
 	glLoadMatrixf((GLfloat*)&cameraT);
@@ -461,9 +458,8 @@ void renderWithPointLight() {
 
 		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		groundMesh->preRender();
+		groundMesh->setupTextures();
 		groundMesh->render();
-		groundMesh->postRender();
 	}
 
 	if (creatureMesh) {
@@ -472,9 +468,8 @@ void renderWithPointLight() {
 
 		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		creatureMesh->preRender();
+		creatureMesh->setupTextures();
 		creatureMesh->render();
-		creatureMesh->postRender();
 	}
 
 #pragma endregion
@@ -488,9 +483,8 @@ void renderWithPointLight() {
 
 		mat4 T = cameraProjection * cameraView * glm::translate(identity<mat4>(), cylinderPos);
 
-		cylinderMesh->preRender();
+		cylinderMesh->setupTextures();
 		cylinderMesh->render(T);
-		cylinderMesh->postRender();
 	}
 
 	glDisable(GL_BLEND);
@@ -504,6 +498,8 @@ void renderWithPointLight() {
 
 	// Restore fixed-function
 	glUseProgram(0);
+	glBindVertexArray(0);
+	glDisable(GL_TEXTURE_2D);
 
 	mat4 cameraT = cameraProjection * cameraView;
 	glLoadMatrixf((GLfloat*)&cameraT);
@@ -542,9 +538,8 @@ void renderWithMultipleLights() {
 
 		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		groundMesh->preRender();
+		groundMesh->setupTextures();
 		groundMesh->render();
-		groundMesh->postRender();
 	}
 
 	if (creatureMesh) {
@@ -553,9 +548,8 @@ void renderWithMultipleLights() {
 
 		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		creatureMesh->preRender();
+		creatureMesh->setupTextures();
 		creatureMesh->render();
-		creatureMesh->postRender();
 	}
 
 #pragma endregion
@@ -585,9 +579,8 @@ void renderWithMultipleLights() {
 
 		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		groundMesh->preRender();
+		groundMesh->setupTextures();
 		groundMesh->render();
-		groundMesh->postRender();
 	}
 
 	if (creatureMesh) {
@@ -596,9 +589,8 @@ void renderWithMultipleLights() {
 
 		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		creatureMesh->preRender();
+		creatureMesh->setupTextures();
 		creatureMesh->render();
-		creatureMesh->postRender();
 	}
 
 #pragma endregion
@@ -613,9 +605,8 @@ void renderWithMultipleLights() {
 
 		mat4 T = cameraProjection * cameraView * glm::translate(identity<mat4>(), cylinderPos);
 
-		cylinderMesh->preRender();
+		cylinderMesh->setupTextures();
 		cylinderMesh->render(T);
-		cylinderMesh->postRender();
 	}
 
 	glDisable(GL_BLEND);
@@ -629,6 +620,8 @@ void renderWithMultipleLights() {
 
 	// Restore fixed-function
 	glUseProgram(0);
+	glBindVertexArray(0);
+	glDisable(GL_TEXTURE_2D);
 
 	mat4 cameraT = cameraProjection * cameraView;
 	glLoadMatrixf((GLfloat*)&cameraT);

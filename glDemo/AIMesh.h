@@ -30,7 +30,6 @@ public:
 	void addNormalMap(GLuint normalMapID);
 	void addNormalMap(std::string filename, FREE_IMAGE_FORMAT format);
 
-	void preRender();
+	void setupTextures();
 	void render();
-	void postRender();
 };

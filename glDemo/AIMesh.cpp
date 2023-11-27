@@ -113,32 +113,9 @@ void AIMesh::addNormalMap(std::string filename, FREE_IMAGE_FORMAT format) {
 
 // Rendering functions
 
-void AIMesh::preRender() {
-
-	// Setup VBOs ready for rendering
-	//glBindBuffer(GL_ARRAY_BUFFER, meshVertexPosBuffer);
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
-	//glEnableVertexAttribArray(0);
-
-	//glBindBuffer(GL_ARRAY_BUFFER, meshNormalBuffer);
-	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
-	//glEnableVertexAttribArray(3);
-
-	//  *** normal mapping *** Bind tangent and bi-tangent VBOs
-	// As noted in the lecture slides, we could just use one of these and calculate the other in the shader
-	//glBindBuffer(GL_ARRAY_BUFFER, meshTangentBuffer);
-	//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
-	//glEnableVertexAttribArray(4);
-
-	//glBindBuffer(GL_ARRAY_BUFFER, meshBiTangentBuffer);
-	//glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
-	//glEnableVertexAttribArray(5);
+void AIMesh::setupTextures() {
 
 	if (meshTexCoordBuffer != 0) {
-
-		//glBindBuffer(GL_ARRAY_BUFFER, meshTexCoordBuffer);
-		//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)0);
-		//glEnableVertexAttribArray(2);
 
 		if (textureID != 0) {
 			
@@ -158,10 +135,6 @@ void AIMesh::preRender() {
 			}
 		}
 	}
-
-	// Bind (and leave bound) the index array for drawing
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshFaceIndexBuffer);
-	//glBindVertexArray(vao);
 }
 
 
@@ -171,36 +144,3 @@ void AIMesh::render() {
 	glDrawElements(GL_TRIANGLES, numFaces * 3, GL_UNSIGNED_INT, (const GLvoid*)0);
 }
 
-
-void AIMesh::postRender() {
-
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(3);
-	glDisableVertexAttribArray(4);
-	glDisableVertexAttribArray(5);
-
-	if (meshTexCoordBuffer != 0) {
-
-		glDisableVertexAttribArray(2);
-
-		if (textureID != 0) {
-
-			glDisable(GL_TEXTURE_2D);
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, 0);
-
-			if (normalMapID != 0) {
-
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, 0);
-			}
-
-			// Restore default
-			glActiveTexture(GL_TEXTURE0);
-		}
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}

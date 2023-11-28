@@ -22,7 +22,10 @@ class AIMesh {
 
 public:
 
+	static int NumberOfMeshes(std::string filename);
+
 	AIMesh(std::string filename, GLuint meshIndex = 0);
+	AIMesh(const struct aiScene* scene, GLuint meshIndex = 0);
 
 	void addTexture(GLuint textureID);
 	void addTexture(std::string filename, FREE_IMAGE_FORMAT format);

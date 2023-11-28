@@ -84,6 +84,10 @@ Cylinder*			cylinderMesh = nullptr;
 
 // Shaders
 
+// Basic colour shader
+GLuint				basicShader;
+GLint				basicShader_mvpMatrix;
+
 // Texture-directional light shader
 GLuint				texDirLightShader;
 GLint				texDirLightShader_modelMatrix;
@@ -134,11 +138,16 @@ PointLight lights[1] = {
 
 bool rotateDirectionalLight = true;
 
+// House single / multi-mesh example
+GLint numHouseMeshes = 0;
+AIMesh** houseModel = nullptr;
+
 #pragma endregion
 
 
 // Function prototypes
 void renderScene();
+void renderHouse();
 void renderWithDirectionalLight();
 void renderWithPointLight();
 void renderWithMultipleLights();
@@ -217,7 +226,7 @@ int main() {
 	//
 	// Setup Textures, VBOs and other scene objects
 	//
-	mainCamera = new ArcballCamera(-33.0f, 45.0f, 8.0f, 55.0f, (float)windowWidth/(float)windowHeight, 0.1f, 500.0f);
+	mainCamera = new ArcballCamera(-33.0f, 45.0f, 8.0f, 55.0f, (float)windowWidth/(float)windowHeight, 0.1f, 5000.0f);
 	
 	groundMesh = new AIMesh(string("Assets\\ground-surface\\surface01.obj"));
 	if (groundMesh) {
@@ -239,11 +248,14 @@ int main() {
 	
 
 	// Load shaders
+	basicShader = setupShaders(string("Assets\\Shaders\\basic_shader.vert"), string("Assets\\Shaders\\basic_shader.frag"));
 	texPointLightShader = setupShaders(string("Assets\\Shaders\\texture-point.vert"), string("Assets\\Shaders\\texture-point.frag"));
 	texDirLightShader = setupShaders(string("Assets\\Shaders\\texture-directional.vert"), string("Assets\\Shaders\\texture-directional.frag"));
 	nMapDirLightShader = setupShaders(string("Assets\\Shaders\\nmap-directional.vert"), string("Assets\\Shaders\\nmap-directional.frag"));
 
 	// Get uniform variable locations for setting values later during rendering
+	basicShader_mvpMatrix = glGetUniformLocation(basicShader, "mvpMatrix");
+
 	texDirLightShader_modelMatrix = glGetUniformLocation(texDirLightShader, "modelMatrix");
 	texDirLightShader_viewMatrix = glGetUniformLocation(texDirLightShader, "viewMatrix");
 	texDirLightShader_projMatrix = glGetUniformLocation(texDirLightShader, "projMatrix");
@@ -266,6 +278,36 @@ int main() {
 	nMapDirLightShader_normalMapTexture = glGetUniformLocation(nMapDirLightShader, "normalMapTexture");
 	nMapDirLightShader_lightDirection = glGetUniformLocation(nMapDirLightShader, "lightDirection");
 	nMapDirLightShader_lightColour = glGetUniformLocation(nMapDirLightShader, "lightColour");
+
+	// House example
+	string houseFilename = string("Assets\\House\\House_Multi.obj");
+	const struct aiScene* houseScene = aiImportFile(houseFilename.c_str(),
+		aiProcess_GenSmoothNormals |
+		aiProcess_CalcTangentSpace |
+		aiProcess_Triangulate |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_SortByPType);
+
+	if (houseScene) {
+
+		numHouseMeshes = houseScene->mNumMeshes;
+
+		cout << "House model: " << houseFilename << " has " << numHouseMeshes << " meshe(s)\n";
+
+		if (numHouseMeshes > 0) {
+
+			houseModel = (AIMesh**)malloc(numHouseMeshes * sizeof(AIMesh*));
+
+			for (int i = 0; i < numHouseMeshes; i++) {
+
+				cout << "Loading house sub-mesh " << i << endl;
+				houseModel[i] = new AIMesh(houseScene, i);
+			}
+		}
+	}
+
+	
+	
 
 
 	//
@@ -301,10 +343,40 @@ int main() {
 // renderScene - function to render the current scene
 void renderScene()
 {
-	renderWithDirectionalLight();
+	renderHouse();
+	//renderWithDirectionalLight();
 	//renderWithPointLight();
 	//renderWithMultipleLights();
 }
+
+void renderHouse() {
+
+	// Clear the rendering window
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Get camera matrices
+	mat4 cameraProjection = mainCamera->projectionTransform();
+	mat4 cameraView = mainCamera->viewTransform();
+
+	mat4 mvpMatrix = cameraProjection * cameraView;
+
+	glDisable(GL_CULL_FACE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	glUseProgram(basicShader);
+	glUniformMatrix4fv(basicShader_mvpMatrix, 1, GL_FALSE, (GLfloat*)&mvpMatrix);
+
+	for (int i = 0; i < numHouseMeshes; i++) {
+
+		houseModel[i]->render();
+	}
+
+	// Restore fixed-function pipeline
+	glUseProgram(0);
+	glBindVertexArray(0);
+
+}
+
 
 // Demonstrate the use of a single directional light source
 //  *** normal mapping ***  - since we're demonstrating the use of normal mapping with a directional light,

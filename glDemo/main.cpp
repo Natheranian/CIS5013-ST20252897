@@ -138,9 +138,11 @@ PointLight lights[1] = {
 
 bool rotateDirectionalLight = true;
 
+
 // House single / multi-mesh example
-GLint numHouseMeshes = 0;
-AIMesh** houseModel = nullptr;
+vector<AIMesh*> houseModel = vector<AIMesh*>();
+
+
 
 #pragma endregion
 
@@ -158,6 +160,7 @@ void mouseMoveHandler(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonHandler(GLFWwindow* window, int button, int action, int mods);
 void mouseScrollHandler(GLFWwindow* window, double xoffset, double yoffset);
 void mouseEnterHandler(GLFWwindow* window, int entered);
+
 
 
 int main() {
@@ -226,7 +229,7 @@ int main() {
 	//
 	// Setup Textures, VBOs and other scene objects
 	//
-	mainCamera = new ArcballCamera(-33.0f, 45.0f, 8.0f, 55.0f, (float)windowWidth/(float)windowHeight, 0.1f, 5000.0f);
+	mainCamera = new ArcballCamera(-33.0f, 45.0f, 40.0f, 55.0f, (float)windowWidth/(float)windowHeight, 0.1f, 5000.0f);
 	
 	groundMesh = new AIMesh(string("Assets\\ground-surface\\surface01.obj"));
 	if (groundMesh) {
@@ -279,7 +282,10 @@ int main() {
 	nMapDirLightShader_lightDirection = glGetUniformLocation(nMapDirLightShader, "lightDirection");
 	nMapDirLightShader_lightColour = glGetUniformLocation(nMapDirLightShader, "lightColour");
 
+
+	//
 	// House example
+	//
 	string houseFilename = string("Assets\\House\\House_Multi.obj");
 	const struct aiScene* houseScene = aiImportFile(houseFilename.c_str(),
 		aiProcess_GenSmoothNormals |
@@ -290,26 +296,21 @@ int main() {
 
 	if (houseScene) {
 
-		numHouseMeshes = houseScene->mNumMeshes;
+		cout << "House model: " << houseFilename << " has " << houseScene->mNumMeshes << " meshe(s)\n";
 
-		cout << "House model: " << houseFilename << " has " << numHouseMeshes << " meshe(s)\n";
+		if (houseScene->mNumMeshes > 0) {
 
-		if (numHouseMeshes > 0) {
-
-			houseModel = (AIMesh**)malloc(numHouseMeshes * sizeof(AIMesh*));
-
-			for (int i = 0; i < numHouseMeshes; i++) {
+			// For each sub-mesh, setup a new AIMesh instance in the houseModel array
+			for (int i = 0; i < houseScene->mNumMeshes; i++) {
 
 				cout << "Loading house sub-mesh " << i << endl;
-				houseModel[i] = new AIMesh(houseScene, i);
+				houseModel.push_back(new AIMesh(houseScene, i));
 			}
 		}
 	}
 
 	
 	
-
-
 	//
 	// 2. Main loop
 	// 
@@ -357,18 +358,22 @@ void renderHouse() {
 	// Get camera matrices
 	mat4 cameraProjection = mainCamera->projectionTransform();
 	mat4 cameraView = mainCamera->viewTransform();
+	
+	// Setup complete transform matrix - the modelling transform scales the house down a bit
+	mat4 mvpMatrix = cameraProjection * cameraView * glm::scale(identity<mat4>(), vec3(0.1f));
 
-	mat4 mvpMatrix = cameraProjection * cameraView;
-
+	// Setup renderer to draw wireframe
 	glDisable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+	// Use (very) basic shader and set mvpMatrux uniform variable
 	glUseProgram(basicShader);
 	glUniformMatrix4fv(basicShader_mvpMatrix, 1, GL_FALSE, (GLfloat*)&mvpMatrix);
 
-	for (int i = 0; i < numHouseMeshes; i++) {
+	// Loop through array of meshes and render each one
+	for (AIMesh* mesh : houseModel) {
 
-		houseModel[i]->render();
+		mesh->render();
 	}
 
 	// Restore fixed-function pipeline

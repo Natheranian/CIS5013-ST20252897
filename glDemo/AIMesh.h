@@ -20,9 +20,10 @@ class AIMesh {
 	GLuint				textureID = 0;
 	GLuint				normalMapID = 0;
 
-public:
+	// Private functions
+	void setupGLStuff(aiMesh* mesh);
 
-	static int NumberOfMeshes(std::string filename);
+public:
 
 	AIMesh(std::string filename, GLuint meshIndex = 0);
 	AIMesh(const struct aiScene* scene, GLuint meshIndex = 0);

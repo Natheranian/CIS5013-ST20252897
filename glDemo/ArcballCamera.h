@@ -81,6 +81,8 @@ public:
 	float getFarPlaneDistance();
 
 	void setFarPlaneDistance(float farPlaneDistance);
+
+	void resetCamera(float aspect);
 	
 	
 	// Accessor methods for derived values

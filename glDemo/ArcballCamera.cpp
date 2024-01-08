@@ -155,6 +155,20 @@ void ArcballCamera::setFarPlaneDistance(float farPlaneDistance) {
 	calculateDerivedValues();
 }
 
+void ArcballCamera::resetCamera(float aspect) 
+{
+	this->theta = -45.0f;
+	this->phi = 45.0f;
+	this->radius = std::max<float>(40.0f, radius);
+
+	this->fovY = 40.0f;
+	this->aspect = aspect;
+	this->nearPlane = 0.1f;
+	this->farPlane = 5000.0f;
+	
+	calculateDerivedValues();
+}
+
 #pragma endregion
 
 

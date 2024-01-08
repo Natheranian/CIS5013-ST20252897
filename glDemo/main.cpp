@@ -65,6 +65,7 @@ GUClock*			gameClock = nullptr;
 ArcballCamera*		mainCamera = nullptr;
 
 // Mouse tracking
+bool				cameraLocked = true;
 bool				mouseDown = false;
 double				prevMouseX, prevMouseY;
 
@@ -79,6 +80,10 @@ bool				rotateRightPressed;
 AIMesh*				groundMesh = nullptr;
 AIMesh*				creatureMesh = nullptr;
 AIMesh*				columnMesh = nullptr;
+AIMesh*				characterMesh = nullptr;
+AIMesh*				cornerMesh = nullptr;
+AIMesh*				wallMesh = nullptr;
+AIMesh*				mausoleumMesh = nullptr;
 Cylinder*			cylinderMesh = nullptr;
 
 
@@ -128,7 +133,7 @@ float beastRotation = 0.0f;
 
 
 // Directional light example (declared as a single instance)
-float directLightTheta = 0.0f;
+float directLightTheta = 45.0f;
 DirectionalLight directLight = DirectionalLight(vec3(cosf(directLightTheta), sinf(directLightTheta), 0.0f));
 
 // Setup point light example light (use array to make adding other lights easier later)
@@ -137,6 +142,7 @@ PointLight lights[1] = {
 };
 
 bool rotateDirectionalLight = true;
+float directionalLightSpeed = 0.0f;
 
 
 // House single / multi-mesh example
@@ -153,6 +159,7 @@ void renderHouse();
 void renderWithDirectionalLight();
 void renderWithPointLight();
 void renderWithMultipleLights();
+void renderWithMyLights();
 void updateScene();
 void resizeWindow(GLFWwindow* window, int width, int height);
 void keyboardHandler(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -229,11 +236,11 @@ int main() {
 	//
 	// Setup Textures, VBOs and other scene objects
 	//
-	mainCamera = new ArcballCamera(-33.0f, 45.0f, 40.0f, 55.0f, (float)windowWidth/(float)windowHeight, 0.1f, 5000.0f);
+	mainCamera = new ArcballCamera(-45.0f, 45.0f, 40.0f, 40.0f, (float)windowWidth/(float)windowHeight, 0.1f, 5000.0f);
 	
-	groundMesh = new AIMesh(string("Assets\\ground-surface\\surface01.obj"));
+	groundMesh = new AIMesh(string("Assets\\MyAssets\\Terrain\\flatTerrain.obj"));
 	if (groundMesh) {
-		groundMesh->addTexture("Assets\\ground-surface\\lunar-surface01.png", FIF_PNG);
+		groundMesh->addTexture("Assets\\MyAssets\\Terrain\\flat terrain.png", FIF_PNG);
 	}
 
 	creatureMesh = new AIMesh(string("Assets\\beast\\beast.obj"));
@@ -249,6 +256,28 @@ int main() {
 
 	cylinderMesh = new Cylinder(string("Assets\\cylinder\\cylinderT.obj"));
 	
+	characterMesh = new AIMesh(string("Assets\\MyAssets\\Character\\Character.obj"));
+	if (characterMesh) {
+		characterMesh->addTexture(string("Assets\\MyAssets\\Character\\LavaPerson Texture.tif"), FIF_TIFF);
+		characterMesh->addNormalMap(string("Assets\\MyAssets\\Character\\LavaPerson Normal.tif"), FIF_TIFF);
+	}
+
+	cornerMesh = new AIMesh(string("Assets\\MyAssets\\City\\Corner.obj"));
+	if (cornerMesh) {
+		cornerMesh->addTexture(string("Assets\\MyAssets\\City\\Pillar Texture.tif"), FIF_TIFF);
+	}
+
+	wallMesh = new AIMesh(string("Assets\\MyAssets\\City\\Wall.obj"));
+	if (wallMesh) {
+		wallMesh->addTexture(string("Assets\\MyAssets\\City\\Wall Texture.tif"), FIF_TIFF);
+		wallMesh->addNormalMap(string("Assets\\MyAssets\\City\\Wall Normal.tif"), FIF_TIFF);
+	}
+
+	mausoleumMesh = new AIMesh(string("Assets\\MyAssets\\City\\Mausoleum.obj"));
+	if (mausoleumMesh) {
+		mausoleumMesh->addTexture(string("Assets\\MyAssets\\City\\mausoleum.png"), FIF_PNG);
+		mausoleumMesh->addNormalMap(string("Assets\\MyAssets\\City\\mausoleumNormal.png"), FIF_PNG);
+	}
 
 	// Load shaders
 	basicShader = setupShaders(string("Assets\\Shaders\\basic_shader.vert"), string("Assets\\Shaders\\basic_shader.frag"));
@@ -286,7 +315,7 @@ int main() {
 	//
 	// House example
 	//
-	string houseFilename = string("Assets\\House\\House_Multi.obj");
+	string houseFilename = string("Assets\\MyAssets\\Hut\\Hut.obj");
 	const struct aiScene* houseScene = aiImportFile(houseFilename.c_str(),
 		aiProcess_GenSmoothNormals |
 		aiProcess_CalcTangentSpace |
@@ -344,16 +373,17 @@ int main() {
 // renderScene - function to render the current scene
 void renderScene()
 {
-	renderHouse();
+	//renderHouse();
 	//renderWithDirectionalLight();
 	//renderWithPointLight();
 	//renderWithMultipleLights();
+	renderWithMyLights();
 }
 
 void renderHouse() {
 
 	// Clear the rendering window
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Get camera matrices
 	mat4 cameraProjection = mainCamera->projectionTransform();
@@ -363,8 +393,8 @@ void renderHouse() {
 	mat4 mvpMatrix = cameraProjection * cameraView * glm::scale(identity<mat4>(), vec3(0.1f));
 
 	// Setup renderer to draw wireframe
-	glDisable(GL_CULL_FACE);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glDisable(GL_CULL_FACE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// Use (very) basic shader and set mvpMatrux uniform variable
 	glUseProgram(basicShader);
@@ -717,6 +747,293 @@ void renderWithMultipleLights() {
 }
 
 
+
+void renderWithMyLights() {
+
+	// Clear the rendering window
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Get camera matrices
+	mat4 cameraProjection = mainCamera->projectionTransform();
+	mat4 cameraView = mainCamera->viewTransform() * translate(identity<mat4>(), -beastPos);
+
+
+#pragma region Render all opaque objects with directional light
+
+	glUseProgram(texDirLightShader);
+
+	glUniformMatrix4fv(texDirLightShader_viewMatrix, 1, GL_FALSE, (GLfloat*)&cameraView);
+	glUniformMatrix4fv(texDirLightShader_projMatrix, 1, GL_FALSE, (GLfloat*)&cameraProjection);
+	glUniform1i(texDirLightShader_texture, 0); // set to point to texture unit 0 for AIMeshes
+	glUniform3fv(texDirLightShader_lightDirection, 1, (GLfloat*)&(directLight.direction));
+	glUniform3fv(texDirLightShader_lightColour, 1, (GLfloat*)&(directLight.colour));
+
+	if (groundMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, -4.0f, 0.0f)) * glm::scale(identity<mat4>(), vec3(10.0f, 0.1f, 10.0f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		groundMesh->setupTextures();
+		groundMesh->render();
+	}
+
+	/*if (creatureMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), beastPos) * eulerAngleY<float>(glm::radians<float>(beastRotation));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		creatureMesh->setupTextures();
+		creatureMesh->render();
+	}*/
+
+	if (characterMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), beastPos) * eulerAngleY<float>(glm::radians<float>(beastRotation)) * glm::scale(identity<mat4>(), vec3(0.05f, 0.05f, 0.05f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		characterMesh->setupTextures();
+		characterMesh->render();
+	}
+
+	if (cornerMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		cornerMesh->setupTextures();
+		cornerMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		cornerMesh->setupTextures();
+		cornerMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		cornerMesh->setupTextures();
+		cornerMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		cornerMesh->setupTextures();
+		cornerMesh->render();
+	}
+
+	if (wallMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		wallMesh->setupTextures();
+		wallMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, -1.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		wallMesh->setupTextures();
+		wallMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, 4.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		wallMesh->setupTextures();
+		wallMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, 4.0f)) *  glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		wallMesh->setupTextures();
+		wallMesh->render();
+	}
+
+	if (mausoleumMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, 4.0f)) * eulerAngleY<float>(glm::radians<float>(180.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texDirLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		mausoleumMesh->setupTextures();
+		mausoleumMesh->render();
+	}
+
+#pragma endregion
+
+
+
+	// Enable additive blending for ***subsequent*** light sources!!!
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+
+
+
+#pragma region Render all opaque objects with point light
+
+	glUseProgram(texPointLightShader);
+
+	glUniformMatrix4fv(texPointLightShader_viewMatrix, 1, GL_FALSE, (GLfloat*)&cameraView);
+	glUniformMatrix4fv(texPointLightShader_projMatrix, 1, GL_FALSE, (GLfloat*)&cameraProjection);
+	glUniform1i(texPointLightShader_texture, 0); // set to point to texture unit 0 for AIMeshes
+	glUniform3fv(texPointLightShader_lightPosition, 1, (GLfloat*)&(lights[0].pos));
+	glUniform3fv(texPointLightShader_lightColour, 1, (GLfloat*)&(lights[0].colour));
+	glUniform3fv(texPointLightShader_lightAttenuation, 1, (GLfloat*)&(lights[0].attenuation));
+
+	if (groundMesh) {
+
+		mat4 modelTransform = glm::scale(identity<mat4>(), vec3(10.0f, 1.0f, 10.0f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		groundMesh->setupTextures();
+		groundMesh->render();
+	}
+
+
+	if (characterMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), beastPos) * eulerAngleY<float>(glm::radians<float>(beastRotation)) * glm::scale(identity<mat4>(), vec3(0.05f, 0.05f, 0.05f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		characterMesh->setupTextures();
+		characterMesh->render();
+	}
+
+	if (cornerMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		cornerMesh->setupTextures();
+		cornerMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		cornerMesh->setupTextures();
+		cornerMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		cornerMesh->setupTextures();
+		cornerMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		cornerMesh->setupTextures();
+		cornerMesh->render();
+	}
+
+	if (wallMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		wallMesh->setupTextures();
+		wallMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, -1.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		wallMesh->setupTextures();
+		wallMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, 4.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		wallMesh->setupTextures();
+		wallMesh->render();
+
+		modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, 4.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		wallMesh->setupTextures();
+		wallMesh->render();
+	}
+
+	if (mausoleumMesh) {
+
+		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, 4.0f)) * eulerAngleY<float>(glm::radians<float>(180.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+
+		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+
+		mausoleumMesh->setupTextures();
+		mausoleumMesh->render();
+	}
+
+#pragma endregion
+
+
+#pragma region Render transparant objects
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	/*if (cylinderMesh) {
+
+		mat4 T = cameraProjection * cameraView * glm::translate(identity<mat4>(), cylinderPos);
+
+		cylinderMesh->setupTextures();
+		cylinderMesh->render(T);
+	}*/
+
+	glDisable(GL_BLEND);
+	
+
+#pragma endregion
+
+
+	//
+	// For demo purposes, render light sources
+	//
+
+	// Restore fixed-function
+	glUseProgram(0);
+	glBindVertexArray(0);
+	glDisable(GL_TEXTURE_2D);
+
+	mat4 cameraT = cameraProjection * cameraView;
+	glLoadMatrixf((GLfloat*)&cameraT);
+	glEnable(GL_POINT_SMOOTH);
+	glPointSize(10.0f);
+
+	glBegin(GL_POINTS);
+
+	glColor3f(directLight.colour.r, directLight.colour.g, directLight.colour.b);
+	glVertex3f(directLight.direction.x * 10.0f, directLight.direction.y * 10.0f, directLight.direction.z * 10.0f);
+
+	glColor3f(lights[0].colour.r, lights[0].colour.g, lights[0].colour.b);
+	glVertex3f(lights[0].pos.x, lights[0].pos.y, lights[0].pos.z);
+
+	glEnd();
+}
+
+
+
+
 // Function called to animate elements in the scene
 void updateScene() {
 
@@ -733,7 +1050,7 @@ void updateScene() {
 	// update main light source
 	if (rotateDirectionalLight) {
 
-		directLightTheta += glm::radians(30.0f) * tDelta;
+		directLightTheta += glm::radians(directionalLightSpeed) * tDelta;
 		directLight.direction = vec3(cosf(directLightTheta), sinf(directLightTheta), 0.0f);
 	}
 	
@@ -816,8 +1133,27 @@ void keyboardHandler(GLFWwindow* window, int key, int scancode, int action, int 
 				rotateRightPressed = true;
 				break;
 
-			case GLFW_KEY_SPACE:
+			/*case GLFW_KEY_SPACE:
 				rotateDirectionalLight = !rotateDirectionalLight;
+				break;
+				*/
+			case GLFW_KEY_F:
+				cameraLocked = !cameraLocked;
+				break;
+			case GLFW_KEY_1:
+				directLight.colour = vec3(1.0f, 1.0f, 1.0f);
+				break;
+			case GLFW_KEY_2:
+				directLight.colour = vec3(0.6f, 0.6f, 0.6f);
+				break;
+			case GLFW_KEY_3:
+				directLight.colour = vec3(0.3f, 0.3f, 0.3f);
+				break;
+			case GLFW_KEY_Q:
+				directionalLightSpeed = 30.0f;
+				break;
+			case GLFW_KEY_E:
+				directionalLightSpeed = -30.0f;
 				break;
 
 			default:
@@ -844,6 +1180,12 @@ void keyboardHandler(GLFWwindow* window, int key, int scancode, int action, int 
 			case GLFW_KEY_D:
 				rotateRightPressed = false;
 				break;
+			case GLFW_KEY_Q:
+				directionalLightSpeed = 0.0f;
+				break;
+			case GLFW_KEY_E:
+				directionalLightSpeed = 0.0f;
+				break;
 
 			default:
 			{
@@ -855,18 +1197,23 @@ void keyboardHandler(GLFWwindow* window, int key, int scancode, int action, int 
 
 void mouseMoveHandler(GLFWwindow* window, double xpos, double ypos) {
 
-	if (mouseDown) {
+	
+	if (!cameraLocked) {
+		if (mouseDown) {
 
-		float dx = float(xpos - prevMouseX);
-		float dy = float(ypos - prevMouseY);
+			float dx = float(xpos - prevMouseX);
+			float dy = float(ypos - prevMouseY);
 
-		if (mainCamera)
-			mainCamera->rotateCamera(-dy, -dx);
+			if (mainCamera)
+				mainCamera->rotateCamera(-dy, -dx);
 
-		prevMouseX = xpos;
-		prevMouseY = ypos;
+			prevMouseX = xpos;
+			prevMouseY = ypos;
+		}
 	}
-
+	else {
+		mainCamera->resetCamera((float)windowWidth / (float)windowHeight);
+	}
 }
 
 void mouseButtonHandler(GLFWwindow* window, int button, int action, int mods) {
@@ -886,13 +1233,14 @@ void mouseButtonHandler(GLFWwindow* window, int button, int action, int mods) {
 }
 
 void mouseScrollHandler(GLFWwindow* window, double xoffset, double yoffset) {
+	if (!cameraLocked) {
+		if (mainCamera) {
 
-	if (mainCamera) {
-
-		if (yoffset < 0.0)
-			mainCamera->scaleRadius(1.1f);
-		else if (yoffset > 0.0)
-			mainCamera->scaleRadius(0.9f);
+			if (yoffset < 0.0)
+				mainCamera->scaleRadius(1.1f);
+			else if (yoffset > 0.0)
+				mainCamera->scaleRadius(0.9f);
+		}
 	}
 }
 

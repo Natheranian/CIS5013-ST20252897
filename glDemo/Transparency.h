@@ -3,7 +3,7 @@
 #include "AIMesh.h"
 
 class Transparency : public AIMesh {
-	// Specific shader to render cylinder (and it's effect)
+	// Shader for transparency
 	GLuint shader = 0;
 	GLint shader_mvpMatrix = -1;
 

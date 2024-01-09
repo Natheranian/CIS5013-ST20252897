@@ -136,8 +136,9 @@ float directLightTheta = 45.0f;
 DirectionalLight directLight = DirectionalLight(vec3(cosf(directLightTheta), sinf(directLightTheta), 0.0f));
 
 // Setup point light example light (use array to make adding other lights easier later)
-PointLight lights[1] = {
-	PointLight(vec3(0.0f, 7.0f, 7.0f), vec3(0.9f, 0.75f, 0.1f), vec3(1.0f, 0.1f, 0.001f))
+PointLight lights[2] = {
+	PointLight(vec3(0.0f, 7.0f, 7.0f), vec3(0.9f, 0.75f, 0.1f), vec3(1.0f, 0.1f, 0.001f)),
+	PointLight(vec3(-20.0f, 2.0f, 5.0f), vec3(1.0f, 0.0f, 0.0f), vec3(1.0f, 0.1f, 0.001f))
 };
 
 bool rotateDirectionalLight = true;
@@ -231,7 +232,7 @@ int main() {
 	//
 	// Setup Textures, VBOs and other scene objects
 	//
-	mainCamera = new ArcballCamera(-45.0f, 45.0f, 40.0f, 40.0f, (float)windowWidth/(float)windowHeight, 0.1f, 5000.0f);
+	mainCamera = new ArcballCamera(-45.0f, 45.0f, 50.0f, 40.0f, (float)windowWidth/(float)windowHeight, 5.0f, 10000.0f);
 	
 	groundMesh = new AIMesh(string("Assets\\MyAssets\\Terrain\\flatTerrain.obj"));
 	if (groundMesh) {
@@ -464,102 +465,108 @@ void renderWithMyLights() {
 	glUniformMatrix4fv(texPointLightShader_viewMatrix, 1, GL_FALSE, (GLfloat*)&cameraView);
 	glUniformMatrix4fv(texPointLightShader_projMatrix, 1, GL_FALSE, (GLfloat*)&cameraProjection);
 	glUniform1i(texPointLightShader_texture, 0); // set to point to texture unit 0 for AIMeshes
-	glUniform3fv(texPointLightShader_lightPosition, 1, (GLfloat*)&(lights[0].pos));
-	glUniform3fv(texPointLightShader_lightColour, 1, (GLfloat*)&(lights[0].colour));
-	glUniform3fv(texPointLightShader_lightAttenuation, 1, (GLfloat*)&(lights[0].attenuation));
+	
+	int i = 0;
+	do {
+		glUniform3fv(texPointLightShader_lightPosition, 1, (GLfloat*)&(lights[i].pos));
+		glUniform3fv(texPointLightShader_lightColour, 1, (GLfloat*)&(lights[i].colour));
+		glUniform3fv(texPointLightShader_lightAttenuation, 1, (GLfloat*)&(lights[i].attenuation));
 
-	if (groundMesh) {
+		if (groundMesh) {
 
-		mat4 modelTransform = glm::scale(identity<mat4>(), vec3(10.0f, 1.0f, 10.0f));
+			mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, -4.0f, 0.0f)) * glm::scale(identity<mat4>(), vec3(10.0f, 0.1f, 10.0f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		groundMesh->setupTextures();
-		groundMesh->render();
-	}
+			groundMesh->setupTextures();
+			groundMesh->render();
+		}
 
 
-	if (characterMesh) {
+		if (characterMesh) {
 
-		mat4 modelTransform = glm::translate(identity<mat4>(), beastPos) * eulerAngleY<float>(glm::radians<float>(beastRotation)) * glm::scale(identity<mat4>(), vec3(0.05f, 0.05f, 0.05f));
+			mat4 modelTransform = glm::translate(identity<mat4>(), beastPos) * eulerAngleY<float>(glm::radians<float>(beastRotation)) * glm::scale(identity<mat4>(), vec3(0.05f, 0.05f, 0.05f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		characterMesh->setupTextures();
-		characterMesh->render();
-	}
+			characterMesh->setupTextures();
+			characterMesh->render();
+		}
 
-	if (cornerMesh) {
+		if (cornerMesh) {
 
-		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			mat4 modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		cornerMesh->setupTextures();
-		cornerMesh->render();
+			cornerMesh->setupTextures();
+			cornerMesh->render();
 
-		modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		cornerMesh->setupTextures();
-		cornerMesh->render();
+			cornerMesh->setupTextures();
+			cornerMesh->render();
 
-		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		cornerMesh->setupTextures();
-		cornerMesh->render();
+			cornerMesh->setupTextures();
+			cornerMesh->render();
 
-		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		cornerMesh->setupTextures();
-		cornerMesh->render();
-	}
+			cornerMesh->setupTextures();
+			cornerMesh->render();
+		}
 
-	if (wallMesh) {
+		if (wallMesh) {
 
-		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, 10.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		wallMesh->setupTextures();
-		wallMesh->render();
+			wallMesh->setupTextures();
+			wallMesh->render();
 
-		modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, -2.0f)) * eulerAngleY<float>(glm::radians<float>(-90)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		wallMesh->setupTextures();
-		wallMesh->render();
+			wallMesh->setupTextures();
+			wallMesh->render();
 
-		modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, 4.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			modelTransform = glm::translate(identity<mat4>(), vec3(-6.0f, 0.0f, 4.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		wallMesh->setupTextures();
-		wallMesh->render();
+			wallMesh->setupTextures();
+			wallMesh->render();
 
-		modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, 4.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			modelTransform = glm::translate(identity<mat4>(), vec3(6.0f, 0.0f, 4.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		wallMesh->setupTextures();
-		wallMesh->render();
-	}
+			wallMesh->setupTextures();
+			wallMesh->render();
+		}
 
-	if (mausoleumMesh) {
+		if (mausoleumMesh) {
 
-		mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, 4.0f)) * eulerAngleY<float>(glm::radians<float>(180.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+			mat4 modelTransform = glm::translate(identity<mat4>(), vec3(0.0f, 0.0f, 4.0f)) * eulerAngleY<float>(glm::radians<float>(180.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
 
-		glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
+			glUniformMatrix4fv(texPointLightShader_modelMatrix, 1, GL_FALSE, (GLfloat*)&modelTransform);
 
-		mausoleumMesh->setupTextures();
-		mausoleumMesh->render();
-	}
+			mausoleumMesh->setupTextures();
+			mausoleumMesh->render();
+		}
+
+		i++;
+	} while (i != 2);
 
 #pragma endregion
 	
@@ -599,9 +606,12 @@ void renderWithMyLights() {
 
 	glColor3f(directLight.colour.r, directLight.colour.g, directLight.colour.b);
 	glVertex3f(directLight.direction.x * 10.0f, directLight.direction.y * 10.0f, directLight.direction.z * 10.0f);
+	
 
 	glColor3f(lights[0].colour.r, lights[0].colour.g, lights[0].colour.b);
 	glVertex3f(lights[0].pos.x, lights[0].pos.y, lights[0].pos.z);
+	glColor3f(lights[1].colour.r, lights[1].colour.g, lights[1].colour.b);
+	glVertex3f(lights[1].pos.x, lights[1].pos.y, lights[1].pos.z);
 
 	glEnd();
 }

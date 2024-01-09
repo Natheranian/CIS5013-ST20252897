@@ -152,6 +152,7 @@
     <ClInclude Include="Tetrahedron.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TextureQuad.h" />
+    <ClInclude Include="Transparency.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AIMesh.cpp" />
@@ -166,6 +167,7 @@
     <ClCompile Include="Tetrahedron.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="TextureQuad.cpp" />
+    <ClCompile Include="Transparency.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Assets\Shaders\beast_shader.fs.txt" />
@@ -178,6 +180,8 @@
     <None Include="Assets\cylinder\cylinder.vert" />
     <None Include="Assets\Shaders\basic_texture.frag" />
     <None Include="Assets\Shaders\basic_texture.vert" />
+    <None Include="TransparencyShader.frag" />
+    <None Include="TransparencyShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,9 +1,18 @@
 #version 410
 
-varying highp vec3 colour;
+uniform sampler2D texture;
+
+in SimplePacket 
+{
+
+	vec2 texCoord;
+
+} inputFragment;
 
 layout (location=0) out vec4 fragColour;
 
-void main() {
-  fragColour = vec4(colour, 0.4);
+void main() 
+{
+  fragColour = texture2D(texture, inputFragment.texCoord);
+  fragColour.a = 0.4;
 }

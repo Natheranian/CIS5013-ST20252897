@@ -163,7 +163,7 @@ void ArcballCamera::resetCamera(float aspect)
 
 	this->fovY = 40.0f;
 	this->aspect = aspect;
-	this->nearPlane = 5.0f;
+	this->nearPlane = 0.1f;
 	this->farPlane = 10000.0f;
 	
 	calculateDerivedValues();

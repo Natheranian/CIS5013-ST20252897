@@ -232,7 +232,7 @@ int main() {
 	//
 	// Setup Textures, VBOs and other scene objects
 	//
-	mainCamera = new ArcballCamera(-45.0f, 45.0f, 50.0f, 40.0f, (float)windowWidth/(float)windowHeight, 5.0f, 10000.0f);
+	mainCamera = new ArcballCamera(-45.0f, 45.0f, 50.0f, 40.0f, (float)windowWidth/(float)windowHeight, 0.1f, 10000.0f);
 	
 	groundMesh = new AIMesh(string("Assets\\MyAssets\\Terrain\\flatTerrain.obj"));
 	if (groundMesh) {
@@ -248,6 +248,7 @@ int main() {
 	cornerMesh = new AIMesh(string("Assets\\MyAssets\\City\\Corner.obj"));
 	if (cornerMesh) {
 		cornerMesh->addTexture(string("Assets\\MyAssets\\City\\Pillar Texture.tif"), FIF_TIFF);
+		cornerMesh->addNormalMap(string("Assets\\MyAssets\\City\\Pillar Texture.tif"), FIF_TIFF);
 	}
 
 	wallMesh = new AIMesh(string("Assets\\MyAssets\\City\\Wall.obj"));
@@ -263,6 +264,10 @@ int main() {
 	}
 
 	transparentMesh = new Transparency(string("Assets\\MyAssets\\Hut\\Hut.obj"));
+	if (transparentMesh) {
+		transparentMesh->addTexture(string("Assets\\MyAssets\\Hut\\hut.png"), FIF_PNG);
+		
+	}
 
 	// Load shaders
 	basicShader = setupShaders(string("Assets\\Shaders\\basic_shader.vert"), string("Assets\\Shaders\\basic_shader.frag"));
@@ -579,6 +584,7 @@ void renderWithMyLights() {
 	if (transparentMesh) {
 
 		mat4 modelTransform = cameraProjection * cameraView * glm::translate(identity<mat4>(), vec3(-20.0f, 0.0f, 5.0f)) * eulerAngleY<float>(glm::radians<float>(180.0f)) * glm::scale(identity<mat4>(), vec3(0.1f, 0.1f, 0.1f));
+		transparentMesh->setupTextures();
 		transparentMesh->render(modelTransform);
 	}
 
@@ -717,6 +723,7 @@ void keyboardHandler(GLFWwindow* window, int key, int scancode, int action, int 
 				break;
 			case GLFW_KEY_F:
 				cameraLocked = !cameraLocked;
+				mainCamera->resetCamera((float)windowWidth / (float)windowHeight);
 				break;
 			case GLFW_KEY_1:
 				directLight.colour = vec3(1.0f, 1.0f, 1.0f);
@@ -788,9 +795,6 @@ void mouseMoveHandler(GLFWwindow* window, double xpos, double ypos) {
 			prevMouseX = xpos;
 			prevMouseY = ypos;
 		}
-	}
-	else {
-		mainCamera->resetCamera((float)windowWidth / (float)windowHeight);
 	}
 }
 
